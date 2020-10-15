@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-class TestModel(nn.Module):
+class DotModel(nn.Module):
   def __init__(self, n_users, n_items, hidden_dims, dropout=False, scale=None):
     super().__init__()
     self.n_users = n_users
@@ -14,22 +14,16 @@ class TestModel(nn.Module):
     self.u_embedding = nn.Embedding(n_users, hidden_dims)
     self.i_embedding = nn.Embedding(n_items, hidden_dims)
 
-    self.fc = nn.Linear(hidden_dims * 2, hidden_dims)
-    self.output_fc = nn.Linear(hidden_dims * 3, 1)
+    self.output_fc = nn.Linear(hidden_dims, 1)
 
   def forward(self, users, items):
     user_vecs = self.u_embedding(users)
     item_vecs = self.i_embedding(items)
 
-    # [batch, hidden * 2]
-    features = torch.cat([user_vecs, item_vecs], dim=1)
-
-    features = self.fc(features)
-    features = F.relu(features)
-    features = F.dropout(features, self.dropout, training=self.training)
-
-    features = torch.cat([user_vecs, item_vecs, features], dim=1)
-    logits = self.output_fc(features)
+    # [batch, hidden]
+    multiply = user_vecs * item_vecs
+    multiply = F.dropout(multiply, self.dropout, training=self.training)
+    logits = self.output_fc(multiply)
     outputs = torch.sigmoid(logits)
 
     if self.scale is not None:

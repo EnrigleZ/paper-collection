@@ -1,3 +1,6 @@
 __pycache__/
 .vscode/
 *.pt
+split_cache/
+# large dataset
+ml-10m/

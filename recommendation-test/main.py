@@ -2,7 +2,8 @@ import torch
 from torch.utils.data import DataLoader
 
 from data import loadDataset
-from models.test import TestModel
+from models.nn import TestModel
+from models.dot import DotModel
 from train import train_one_epoch, test_one_epoch
 from utils import save_model, load_model
 
@@ -26,7 +27,7 @@ def parse_args():
                       help='whether use gpu when it is available')
   parser.add_argument('--mode', type=str, default='train',
                       help='train or test')
-  parser.add_argument('--model', type=str, default='test')
+  parser.add_argument('--model', type=str, default='nn')
 
   return parser.parse_args()
 
@@ -40,7 +41,10 @@ def __main__():
   train, validate, test, n_users, n_items, scale = loadDataset(args.dataset)
   print("n_users:", n_users, "n_items:", n_items)
 
-  model = TestModel(n_users, n_items, 64, dropout=0.15, scale=scale).to(device)
+  if args.model == 'nn':
+    model = TestModel(n_users, n_items, 64, dropout=0.15, scale=scale).to(device)
+  elif args.model == 'dot':
+    model = DotModel(n_users, n_items, 64, dropout=0.15, scale=scale).to(device)
   loss_fn = torch.nn.MSELoss()
   optimizer = torch.optim.Adam(model.parameters())
   load_model(model, args)
